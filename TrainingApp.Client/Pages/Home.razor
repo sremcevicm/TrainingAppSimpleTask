@@ -1,7 +1,22 @@
-﻿@page "/"
+﻿@inject DialogService DialogService
+@inject NotificationService NotificationService
+@using TrainingApp.Client.Components.Appointments
+@using TrainingApp.Shared.DTOs
+@using Radzen
+@page "/"
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Dobrodošli u ST-Gym</h1>
 
-Welcome to your new app.
+<RadzenTabs TabPosition="TabPosition.Top" RenderMode="TabRenderMode.Client">
+    <Tabs>
+        <RadzenTabsItem Text="Termini">
+            <Schedule />
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Klijenti">
+
+        </RadzenTabsItem>
+    </Tabs>
+</RadzenTabs>
+

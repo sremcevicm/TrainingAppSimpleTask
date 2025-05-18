@@ -1,0 +1,60 @@
+﻿@inject DialogService DialogService
+@inject HttpClient Http
+@using TrainingApp.Shared.DTOs
+
+
+<RadzenTemplateForm TItem="ScheduleRequestDTO" Data="@Model" Submit="@OnSubmit">
+    <RadzenStack Gap="1rem">
+
+        <!-- Full Name -->
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Ime i prezime" Style="width: 6rem;" />
+            <RadzenTextBox @bind-Value="Model.FullName" Name="FullName" Style="width: 14rem;" Disabled=@isDisabled/>
+        </RadzenStack>
+
+        @* <!-- Phone Number -->
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Broj telefona" Style="width: 6rem;" />
+            <RadzenTextBox @bind-Value="Model.PhoneNumber" Name="PhoneNumber" Style="width: 14rem;" />
+        </RadzenStack> *@
+
+        <!--Email-->
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Email adresa" Style="width: 6rem;" />
+            <RadzenTextBox @bind-Value="Model.Email" Name="Email" Style="width: 14rem;" Disabled=@isDisabled />
+        </RadzenStack> 
+
+        <!-- Type -->
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Tip treninga" Style="width: 6rem;" />
+            <RadzenTextBox @bind-Value="Model.Type" Name="Type" Style="width: 14rem;" Disabled=@isDisabled />
+        </RadzenStack>
+
+        <!-- Duration -->
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Trajanje (min)" Style="width: 6rem;" />
+            <RadzenDropDown @bind-Value="Model.DurationInMinutes"
+            Data="@durations"
+            TextProperty="Text"
+            ValueProperty="Value"
+            Style="width: 14rem;" 
+            Disabled=@isDisabled />
+        </RadzenStack>
+
+        <!-- Trainer selection -->
+
+
+
+        <!-- Submit Button -->
+        @if (isDisabled)
+        {
+            <RadzenButton Text="Otkaži" ButtonType=ButtonType.Button Style="margin-top: 1rem; background-color: red;" />
+        }
+        else
+        {
+            <RadzenButton Text="Sačuvaj" ButtonType=ButtonType.Submit Style="margin-top: 1rem;" />
+        }
+        
+
+    </RadzenStack>
+</RadzenTemplateForm>

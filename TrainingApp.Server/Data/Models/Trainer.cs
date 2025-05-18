@@ -24,6 +24,9 @@ namespace TrainingApp.Server.Data.Models
         [StringLength(50)]
         public string AccessCode { get; set; } = string.Empty;
 
+        [Range(0, 168)]
+        public int CancellationNoticeInHours { get; set; } = 24;
+
         public ICollection<TrainingSession> TrainingSessions { get; set; } = new List<TrainingSession>();
     }
 }

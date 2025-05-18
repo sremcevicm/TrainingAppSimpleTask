@@ -1,0 +1,16 @@
+﻿@inject DialogService DialogService
+@inject HttpClient Http
+@inject NotificationService NotificationService
+@using TrainingApp.Shared.DTOs
+@using Radzen
+
+<RadzenTemplateForm TItem="string" Submit="@OnSubmit">
+    <RadzenStack Gap="1rem">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Kod za trenera" Style="width: 6rem;" />
+            <RadzenTextBox @bind-Value="trainerCode" Name="trainerCode" Style="width: 14rem;" />
+        </RadzenStack>
+
+        <RadzenButton Text="Uloguj se kao trener" ButtonType="ButtonType.Submit" Style="margin-top: 1rem;" />
+    </RadzenStack>
+</RadzenTemplateForm>

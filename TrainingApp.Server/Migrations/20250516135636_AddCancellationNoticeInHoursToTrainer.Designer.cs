@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TrainingApp.Server.Data.Contexts;
 
@@ -11,9 +12,11 @@ using TrainingApp.Server.Data.Contexts;
 namespace TrainingApp.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250516135636_AddCancellationNoticeInHoursToTrainer")]
+    partial class AddCancellationNoticeInHoursToTrainer
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -79,14 +82,9 @@ namespace TrainingApp.Server.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("TrainingSessionId");
 
                     b.HasIndex("TrainerId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("TrainingSessions");
                 });
@@ -118,6 +116,29 @@ namespace TrainingApp.Server.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("TrainingApp.Server.Data.Models.UserTraining", b =>
+                {
+                    b.Property<int>("UserTrainingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserTrainingId"));
+
+                    b.Property<int>("TrainingSessionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserTrainingId");
+
+                    b.HasIndex("TrainingSessionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserTrainings");
+                });
+
             modelBuilder.Entity("TrainingApp.Server.Data.Models.TrainingSession", b =>
                 {
                     b.HasOne("TrainingApp.Server.Data.Models.Trainer", "Trainer")
@@ -126,12 +147,24 @@ namespace TrainingApp.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TrainingApp.Server.Data.Models.User", "User")
-                        .WithMany("TrainingSessions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Trainer");
+                });
+
+            modelBuilder.Entity("TrainingApp.Server.Data.Models.UserTraining", b =>
+                {
+                    b.HasOne("TrainingApp.Server.Data.Models.TrainingSession", "TrainingSession")
+                        .WithMany("UserTrainings")
+                        .HasForeignKey("TrainingSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TrainingApp.Server.Data.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TrainingSession");
 
                     b.Navigation("User");
                 });
@@ -141,9 +174,9 @@ namespace TrainingApp.Server.Migrations
                     b.Navigation("TrainingSessions");
                 });
 
-            modelBuilder.Entity("TrainingApp.Server.Data.Models.User", b =>
+            modelBuilder.Entity("TrainingApp.Server.Data.Models.TrainingSession", b =>
                 {
-                    b.Navigation("TrainingSessions");
+                    b.Navigation("UserTrainings");
                 });
 #pragma warning restore 612, 618
         }

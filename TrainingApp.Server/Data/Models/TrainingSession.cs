@@ -21,6 +21,7 @@ namespace TrainingApp.Server.Data.Models
 
         public Trainer? Trainer { get; set; }
 
-        public ICollection<UserTraining> UserTrainings { get; set; } = new List<UserTraining>();
+        public int? UserId { get; set; }
+        public User? User { get; set; }
     }
 }

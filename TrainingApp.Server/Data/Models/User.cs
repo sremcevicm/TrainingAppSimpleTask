@@ -19,6 +19,8 @@ namespace TrainingApp.Server.Data.Models
         [StringLength(20)]
         public string? PhoneNumber { get; set; }
 
+        public ICollection<TrainingSession> TrainingSessions { get; set; } = new List<TrainingSession>();
+
         public override string ToString() => $"{Name} ({Email})";
     }
 }

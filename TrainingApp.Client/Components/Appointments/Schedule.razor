@@ -1,0 +1,47 @@
+﻿@inject DialogService DialogService
+@inject NotificationService NotificationService
+@inject HttpClient Http
+@inject IUserSession userSession;
+
+@using Shared.DTOs
+@using TrainingApp.Client.Services
+<h3>Ovde se zakazuju termini</h3>
+
+<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+    <RadzenLabel Text="Trener" Style="width: 6rem;" />
+    <RadzenDropDown @bind-Value="TrainerId"
+    Data="@trainers"
+    TextProperty="FullName"
+    ValueProperty="Id"
+    Change="@OnTrainerChanged"
+    Placeholder="Izaberi trenera"
+    Style="width: 14rem;" />
+</RadzenStack>
+
+@if (!string.IsNullOrEmpty(userDetails.Email))
+{
+    <h3>Zakazivanje termina za: @userDetails.Name</h3>
+    @if (TrainerId != 0)
+    {
+        <RadzenScheduler @ref="scheduler"
+        SlotRender="@OnSlotRender"
+        Style="height: 768px;"
+        TItem="ScheduleRequestDTO"
+        Data="@scheduleRequests"
+        StartProperty="StartTime"
+        EndProperty="EndTime"
+        TextProperty="Type"
+        SlotSelect="@OnSlotSelect"
+        AppointmentSelect=@OnAppointmentSelect
+        AppointmentMove=@OnAppointmentMove
+        AppointmentRender="@OnAppointmentRender">
+
+            <RadzenDayView />
+            <RadzenWeekView />
+        </RadzenScheduler>
+    }
+}
+else
+{
+    <h3>Mozete <RadzenLink Path="user-details" Text="OVDE"/> ostaviti vase podatke</h3>
+}

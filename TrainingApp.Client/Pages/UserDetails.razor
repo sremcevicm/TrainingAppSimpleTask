@@ -1,0 +1,49 @@
+﻿@page "/user-details";
+@using TrainingApp.Client.Services
+@using TrainingApp.Shared.DTOs
+
+@inject IJSRuntime JS;
+@inject IUserSession userSession;
+@inject DialogService DialogService;
+@inject NotificationService NotificationService
+
+<h3>UserDetails</h3>
+
+<RadzenTemplateForm TItem="UserDetailsDTO" Data="@Model">
+    <RadzenStack Gap="1rem">
+
+        <!-- Full Name -->
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Ime i prezime" Style="width: 6rem;" />
+            <RadzenTextBox @bind-Value="Model.Name" Name="Name" Style="width: 14rem;" Disabled=@isDisabled />
+        </RadzenStack>
+
+        <!-- Phone Number -->
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Broj telefona" Style="width: 6rem;" />
+            <RadzenTextBox @bind-Value="Model.Phone" Name="Phone" Style="width: 14rem;" Disabled=@isDisabled />
+        </RadzenStack>
+
+        <!--Email-->
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Email adresa" Style="width: 6rem;" />
+            <RadzenTextBox @bind-Value="Model.Email" Name="Email" Style="width: 14rem;" Disabled=@isDisabled />
+        </RadzenStack>
+
+        <!-- Trainer selection -->
+        <!-- Submit Button -->
+        @if (isDisabled)
+        {
+            <RadzenButton Text="Promeni korisnika" ButtonType=ButtonType.Button Style="margin-top: 1rem; background-color: darkred;" />
+        }
+        else
+        {
+            <RadzenButton Text="Prijavi se" ButtonType=ButtonType.Button Click="@OnSubmit" Style="margin-top: 1rem;" />
+
+            <RadzenButton Text="Prijavi se kao trener" ButtonType=ButtonType.Button Click="@OpenTrainerDialog" Style="margin-top: 1rem; background-color: forestgreen" />
+        }
+
+
+    </RadzenStack>
+</RadzenTemplateForm>
+
