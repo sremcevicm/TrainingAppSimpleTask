@@ -15,9 +15,11 @@ public partial class Schedule
     RadzenScheduler<ScheduleRequestDTO> scheduler;
     private List<ScheduleRequestDTO> scheduleRequests = new();
     private int? TrainerId { get; set; } = 0;
+    private int CancellationNoticeInHours { get; set; } = 0;
     private List<ChooseTrainerDTO> trainers = new();
 
-    private UserDetailsDTO userDetails = new();
+    [Parameter]
+    public UserDetailsDTO? UserDetails { get; set; }
     //private string userEmail = string.Empty;
 
     [Inject]
@@ -25,9 +27,19 @@ public partial class Schedule
 
     protected override async Task OnInitializedAsync()
     {
-        //userEmail = await JS.InvokeAsync<string>("localStorageHelper.getItem", "userEmail");
-        userDetails = await userSession.GetUserDetailsAsync() ?? new();
         trainers = await Http.GetFromJsonAsync<List<ChooseTrainerDTO>>("api/trainer");
+
+        // Ako korisnik nije trener, možeš automatski postaviti njegovog trenera ako znaš Email
+        if (UserDetails.IsTrainer && !string.IsNullOrEmpty(UserDetails.Email))
+        {
+            var trainer = trainers?.FirstOrDefault(t => t.Email == UserDetails.Email);
+            if (trainer != null)
+            {
+                TrainerId = trainer.Id;
+            }
+            CancellationNoticeInHours = trainer.CancellationNoticeInHours;
+        }
+
         await LoadAndFilterSessions();
     }
 
@@ -41,19 +53,42 @@ public partial class Schedule
     {
         var allSessions = await Http.GetFromJsonAsync<List<ScheduleRequestDTO>>("api/trainingsession");
 
-        //userEmail = await JS.InvokeAsync<string>("localStorage.getItem", "userEmail");
-
-        if (TrainerId != 0)
+        if (allSessions == null)
         {
-            scheduleRequests = allSessions
+            scheduleRequests = new List<ScheduleRequestDTO>();
+            return;
+        }
+
+        scheduleRequests = allSessions
                 .Where(x => x.TrainerId == TrainerId)
                 .ToList();
+    }
+    private async Task OnHoursChange()
+    {
+        if (TrainerId is null)
+            return;
+
+        var response = await Http.PutAsJsonAsync(
+            $"api/trainer/{TrainerId}/cancellation-notice",
+            CancellationNoticeInHours
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            var trainer = trainers.FirstOrDefault(t => t.Id == TrainerId);
+            if (trainer != null)
+            {
+                trainer.CancellationNoticeInHours = CancellationNoticeInHours;
+            }
+            NotificationService.Notify(NotificationSeverity.Success, "Uspeh", "Otkazni rok je ažuriran.");
+            await scheduler.Reload();
         }
         else
         {
-            scheduleRequests = new();
+            NotificationService.Notify(NotificationSeverity.Error, "Greška", "Nije uspelo ažuriranje otkaznog roka.");
         }
     }
+
     void OnSlotRender(SchedulerSlotRenderEventArgs args)
     {
         // Highlight working hours (8-23)
@@ -67,11 +102,7 @@ public partial class Schedule
     {
         // Never call StateHasChanged in AppointmentRender - would lead to infinite loop
 
-        if (args.Data.IsCanceled)
-        {
-            args.Attributes["style"] = "background: red";
-        }
-        else if (args.Data.StartTime < DateTime.Now)
+        if (args.Data.StartTime < DateTime.Now)
         {
             args.Attributes["style"] = "background: gray";
         }
@@ -86,43 +117,58 @@ public partial class Schedule
         var model = args.Data;
         model.TrainerId = TrainerId ?? 0;
 
+        // Find the trainer with the matching ID
+        var selectedTrainer = trainers.FirstOrDefault(t => t.Id == model.TrainerId);
+
         var result = await DialogService.OpenAsync<ScheduleDialog>(
             "Pregled termina",
             new Dictionary<string, object>
             {
-            { "Model", model }
+                { "Model", model },
+                { "Trainer", selectedTrainer }
             },
             new DialogOptions { Width = "auto", Height = "auto" });
 
-        //if (result is not null)
-        //{
-        //    var response = await Http.PutAsJsonAsync($"api/trainingsession/schedule/{model.TrainingSessionId}", model);
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        // Ažuriramo postojeći element u listi
-        //        var index = scheduleRequests.FindIndex(r => r.TrainingSessionId == model.TrainingSessionId);
-        //        if (index != -1)
-        //        {
-        //            scheduleRequests[index] = model;
-        //        }
+        if (result is ScheduleRequestDTO updatedModel)
+        {
+            if (updatedModel.IsCanceled)
+            {
+                // Ovde brišemo termin
+                var response = await Http.DeleteAsync($"api/trainingsession/{updatedModel.TrainingSessionId}");
 
-        //        NotificationService.Notify(NotificationSeverity.Success, "Uspešno izmenjen trening", model.Type);
-        //        await scheduler.Reload();
-        //    }
-        //    else
-        //    {
-        //        NotificationService.Notify(NotificationSeverity.Error, "Greška", "Nije uspela izmena treninga.");
-        //    }
-        //}
+                if (response.IsSuccessStatusCode)
+                {
+                    // Ukloni iz lokalne liste
+                    scheduleRequests.RemoveAll(r => r.TrainingSessionId == updatedModel.TrainingSessionId);
+
+                    NotificationService.Notify(NotificationSeverity.Warning, "Termin otkazan", updatedModel.Type);
+                    await scheduler.Reload();
+                }
+                else
+                {
+                    NotificationService.Notify(NotificationSeverity.Error, "Greška", "Nije uspelo otkazivanje termina.");
+                }
+            }
+            else
+            {
+                // Ako nije otkazivanje, možeš ovde vratiti stari PUT ako ti treba
+            }
+        }
     }
 
 
     async Task OnSlotSelect(SchedulerSlotSelectEventArgs args)
     {
+        if (args.Start.Date <= DateTime.Today)
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Zakazivanje nije dozvoljeno", "Možete zakazati termin samo od sutra.");
+            return;
+        }
+
         var model = new ScheduleRequestDTO
         {
-            FullName = userDetails.Name,
-            Email = userDetails.Email,
+            FullName = UserDetails.IsTrainer ? string.Empty : UserDetails.Name,
+            Email = UserDetails.IsTrainer ? string.Empty : UserDetails.Email,
             StartTime = args.Start,
             TrainerId = TrainerId ?? 0
         };
@@ -131,7 +177,8 @@ public partial class Schedule
             "Zakazivanje termina",
             new Dictionary<string, object>
             {
-        { "Model", model }
+        { "Model", model },
+        { "isByTrainer", UserDetails.IsTrainer }
             },
             new DialogOptions { Width = "auto", Height = "auto" });
 
@@ -218,23 +265,5 @@ public partial class Schedule
         }
     }
 
-    private async Task SaveUserToLocalStorageAsync(string email)
-    {
-        var existing = await JS.InvokeAsync<string>("localStorage.getItem", "userEmail");
-        if (string.IsNullOrEmpty(existing))
-        {
-            await JS.InvokeVoidAsync("localStorage.setItem", "userEmail", email);
-            Console.WriteLine("Korisnik sačuvan u localStorage.");
-        }
-        else
-        {
-            Console.WriteLine("Korisnik već postoji u localStorage.");
-        }
-    }
-
-    private async Task<string> GetUserFromLocalStorageAsync()
-    {
-        return await JS.InvokeAsync<string>("localStorage.getItem", "userEmail");
-    }
 
 }

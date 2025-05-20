@@ -7,5 +7,6 @@ namespace TrainingApp.Server.Interfaces
     {
         Task<List<ChooseTrainerDTO>> GetAllTrainersAsync();
         Task<UserDetailsDTO> GetTrainerByCodeAsync(string code);
+        Task<bool> UpdateCancellationNoticeAsync(int trainerId, int hours);
     }
 }

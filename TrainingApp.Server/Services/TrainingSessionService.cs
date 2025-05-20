@@ -61,6 +61,12 @@ namespace TrainingApp.Server.Services
             if (dto.UserId.HasValue)
             {
                 user = await _context.Users.FindAsync(dto.UserId.Value);
+                if (user == null)
+                    throw new Exception("User not found");
+
+                trainingSession.UserId = user.UserId; // Dodeli UserId sesiji
+                user.TrainingSessions.Add(trainingSession); // Dodaj trening sesiju korisniku
+                _context.Users.Update(user);
             }
             else if (!string.IsNullOrEmpty(dto.FullName) && !string.IsNullOrEmpty(dto.Email))
             {
@@ -71,20 +77,15 @@ namespace TrainingApp.Server.Services
                     {
                         Name = dto.FullName,
                         Email = dto.Email,
-                        PhoneNumber = null
+                        PhoneNumber = null,
+                        TrainingSessions = new List<TrainingSession>() // Inicijalizuj listu
                     };
+
+                    trainingSession.UserId = user.UserId; // Dodeli UserId sesiji
+                    user.TrainingSessions.Add(trainingSession); // Dodaj trening sesiju korisniku
                     _context.Users.Add(user);
                     await _context.SaveChangesAsync(); // Sačuvaj korisnika da bi dobio ID
                 }
-            }
-
-            if (user != null)
-            {
-                trainingSession.UserId = user.UserId; // Direktno dodeljuj UserId
-            }
-            else
-            {
-                trainingSession.UserId = null; // Ili možeš da ostaviš bez korisnika ako je to dozvoljeno
             }
 
             await _context.SaveChangesAsync();
@@ -102,6 +103,15 @@ namespace TrainingApp.Server.Services
             };
         }
 
+        public async Task DeleteTrainingSessionAsync(int id)
+        {
+            var session = await _context.TrainingSessions.FindAsync(id);
+            if (session == null)
+                throw new Exception("Training session not found.");
+
+            _context.TrainingSessions.Remove(session);
+            await _context.SaveChangesAsync();
+        }
 
 
     }

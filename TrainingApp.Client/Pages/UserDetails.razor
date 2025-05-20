@@ -6,8 +6,10 @@
 @inject IUserSession userSession;
 @inject DialogService DialogService;
 @inject NotificationService NotificationService
+@inject NavigationManager NavigationManager;
+@inject HttpClient Http;
 
-<h3>UserDetails</h3>
+<h3>Unesite ovde svoje podatke</h3>
 
 <RadzenTemplateForm TItem="UserDetailsDTO" Data="@Model">
     <RadzenStack Gap="1rem">
@@ -26,7 +28,7 @@
 
         <!--Email-->
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
-            <RadzenLabel Text="Email adresa" Style="width: 6rem;" />
+            <RadzenLabel Text="Email adresa*" Style="width: 6rem;" />
             <RadzenTextBox @bind-Value="Model.Email" Name="Email" Style="width: 14rem;" Disabled=@isDisabled />
         </RadzenStack>
 
@@ -34,7 +36,7 @@
         <!-- Submit Button -->
         @if (isDisabled)
         {
-            <RadzenButton Text="Promeni korisnika" ButtonType=ButtonType.Button Style="margin-top: 1rem; background-color: darkred;" />
+            <RadzenButton Text="Promeni korisnika" ButtonType=ButtonType.Button Click="@OnUserChange" Style="margin-top: 1rem; background-color: darkred;" />
         }
         else
         {

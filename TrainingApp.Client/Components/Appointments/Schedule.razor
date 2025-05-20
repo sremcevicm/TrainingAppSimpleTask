@@ -5,23 +5,40 @@
 
 @using Shared.DTOs
 @using TrainingApp.Client.Services
-<h3>Ovde se zakazuju termini</h3>
 
-<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
-    <RadzenLabel Text="Trener" Style="width: 6rem;" />
-    <RadzenDropDown @bind-Value="TrainerId"
-    Data="@trainers"
-    TextProperty="FullName"
-    ValueProperty="Id"
-    Change="@OnTrainerChanged"
-    Placeholder="Izaberi trenera"
-    Style="width: 14rem;" />
-</RadzenStack>
-
-@if (!string.IsNullOrEmpty(userDetails.Email))
+@if (!string.IsNullOrEmpty(UserDetails.Email))
 {
-    <h3>Zakazivanje termina za: @userDetails.Name</h3>
-    @if (TrainerId != 0)
+    @if (!UserDetails.IsTrainer)
+    {
+        <h3>Zakazivanje termina za: @UserDetails.Name</h3>
+        <br/>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Trener" Style="width: 6rem;" />
+            <RadzenDropDown @bind-Value="TrainerId"
+            Data="@trainers"
+            TextProperty="FullName"
+            ValueProperty="Id"
+            Change="@OnTrainerChanged"
+            Placeholder="Izaberi trenera"
+            Style="width: 14rem;" />
+        </RadzenStack>
+        <br />
+    }
+    else
+    {
+        <br />
+        <div>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Otkazni rok (sati): " Style="width: 6rem;" />
+            <RadzenNumeric @bind-Value="CancellationNoticeInHours"
+                            Style="width: 14rem;" />
+        </RadzenStack>
+        <RadzenButton Text="Potvrdi" ButtonType="ButtonType.Button" Click="@OnHoursChange" Style="margin-top: 1rem;" />
+        </div>
+        <br />
+    }
+
+    @if (TrainerId != 0 || UserDetails.IsTrainer)
     {
         <RadzenScheduler @ref="scheduler"
         SlotRender="@OnSlotRender"
@@ -43,5 +60,6 @@
 }
 else
 {
+    <br />
     <h3>Mozete <RadzenLink Path="user-details" Text="OVDE"/> ostaviti vase podatke</h3>
 }

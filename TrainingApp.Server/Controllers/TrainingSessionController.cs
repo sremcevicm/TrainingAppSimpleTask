@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TrainingApp.Server.Interfaces;
 using TrainingApp.Server.Services;
 using TrainingApp.Shared.DTOs;
@@ -57,5 +58,21 @@ namespace TrainingApp.Server.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTrainingSession(int id)
+        {
+            try
+            {
+                await _service.DeleteTrainingSessionAsync(id);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+
     }
 }

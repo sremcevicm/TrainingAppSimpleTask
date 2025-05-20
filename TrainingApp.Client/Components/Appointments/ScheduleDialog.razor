@@ -3,16 +3,16 @@
 @using TrainingApp.Shared.DTOs
 
 
-<RadzenTemplateForm TItem="ScheduleRequestDTO" Data="@Model" Submit="@OnSubmit">
+<RadzenTemplateForm TItem="ScheduleRequestDTO" Data="@Model">
     <RadzenStack Gap="1rem">
 
         <!-- Full Name -->
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
             <RadzenLabel Text="Ime i prezime" Style="width: 6rem;" />
-            <RadzenTextBox @bind-Value="Model.FullName" Name="FullName" Style="width: 14rem;" Disabled=@isDisabled/>
+            <RadzenTextBox @bind-Value="Model.FullName" Name="FullName" Style="width: 14rem;" Disabled=@(!isByTrainer || isDisabled)/>
         </RadzenStack>
 
-        @* <!-- Phone Number -->
+        @*<!-- Phone Number -->
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
             <RadzenLabel Text="Broj telefona" Style="width: 6rem;" />
             <RadzenTextBox @bind-Value="Model.PhoneNumber" Name="PhoneNumber" Style="width: 14rem;" />
@@ -21,13 +21,13 @@
         <!--Email-->
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
             <RadzenLabel Text="Email adresa" Style="width: 6rem;" />
-            <RadzenTextBox @bind-Value="Model.Email" Name="Email" Style="width: 14rem;" Disabled=@isDisabled />
+            <RadzenTextBox @bind-Value="Model.Email" Name="Email" Style="width: 14rem;" Disabled=@(!isByTrainer || isDisabled) />
         </RadzenStack> 
 
         <!-- Type -->
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
             <RadzenLabel Text="Tip treninga" Style="width: 6rem;" />
-            <RadzenTextBox @bind-Value="Model.Type" Name="Type" Style="width: 14rem;" Disabled=@isDisabled />
+            <RadzenTextBox @bind-Value="Model.Type" Name="Type" Style="width: 14rem;" Disabled=@isDisabled/>
         </RadzenStack>
 
         <!-- Duration -->
@@ -37,7 +37,7 @@
             Data="@durations"
             TextProperty="Text"
             ValueProperty="Value"
-            Style="width: 14rem;" 
+            Style="width: 14rem;"
             Disabled=@isDisabled />
         </RadzenStack>
 
@@ -48,11 +48,14 @@
         <!-- Submit Button -->
         @if (isDisabled)
         {
-            <RadzenButton Text="Otkaži" ButtonType=ButtonType.Button Style="margin-top: 1rem; background-color: red;" />
+            @if (isCancelPossible)
+            {
+                <RadzenButton Text="Otkaži" ButtonType=ButtonType.Button Click="@OnCancel" Style="margin-top: 1rem; background-color: darkred;" />
+            }
         }
         else
         {
-            <RadzenButton Text="Sačuvaj" ButtonType=ButtonType.Submit Style="margin-top: 1rem;" />
+            <RadzenButton Text="Sačuvaj" ButtonType=ButtonType.Button Click="@OnSubmit" Style="margin-top: 1rem;" />
         }
         
 

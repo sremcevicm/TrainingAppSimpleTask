@@ -1,22 +1,35 @@
 ﻿@inject DialogService DialogService
 @inject NotificationService NotificationService
 @using TrainingApp.Client.Components.Appointments
+@using TrainingApp.Client.Components.Trainer
+@using TrainingApp.Client.Services
 @using TrainingApp.Shared.DTOs
 @using Radzen
+@inject IUserSession userSession
 @page "/"
 
 <PageTitle>Home</PageTitle>
 
 <h1>Dobrodošli u ST-Gym</h1>
 
-<RadzenTabs TabPosition="TabPosition.Top" RenderMode="TabRenderMode.Client">
-    <Tabs>
-        <RadzenTabsItem Text="Termini">
-            <Schedule />
-        </RadzenTabsItem>
-        <RadzenTabsItem Text="Klijenti">
-
-        </RadzenTabsItem>
-    </Tabs>
-</RadzenTabs>
+@if (Model != null)
+{
+    <RadzenTabs TabPosition="TabPosition.Top" RenderMode="TabRenderMode.Client">
+        <Tabs>
+            <RadzenTabsItem Text="Termini">
+                <Schedule UserDetails=Model />
+            </RadzenTabsItem>
+            @if (Model.IsTrainer)
+            {
+                <RadzenTabsItem Text="Klijentski podaci">
+                    <TrainerClients/>
+                </RadzenTabsItem>
+            }
+        </Tabs>
+    </RadzenTabs>
+}
+else
+{
+    <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" Style="width:100%" />
+}
 

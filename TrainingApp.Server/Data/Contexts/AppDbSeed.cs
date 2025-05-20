@@ -14,14 +14,14 @@ namespace TrainingApp.Server.Data.Contexts
                         Name = "Petar Petrovic", 
                         Email = "petar@example.com", 
                         PhoneNumber = "066112233",
-                        AccessCode = SecurityHelper.HashAccessCode("1234!@#$"), 
+                        AccessCode = SecurityHelper.HashAccessCode("qwer1234"), 
                         CancellationNoticeInHours = 24
                     },
                     new Trainer { 
                         Name = "Iva Ivivc", 
                         Email = "iva@example.com", 
                         PhoneNumber = "066445566", 
-                        AccessCode = SecurityHelper.HashAccessCode("5678%^&*"),
+                        AccessCode = SecurityHelper.HashAccessCode("tyui5678"),
                         CancellationNoticeInHours = 12
                     }
                 );

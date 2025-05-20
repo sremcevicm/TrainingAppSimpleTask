@@ -1,4 +1,4 @@
-using TrainingApp.Server.Data.Contexts;
+﻿using TrainingApp.Server.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -13,6 +13,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<ITrainingSession, TrainingSessionService>();
 builder.Services.AddScoped<ITrainer, TrainerService>();
+builder.Services.AddScoped<IUser, UserService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+
 
 
 builder.Services.AddControllersWithViews();
@@ -58,11 +61,11 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseCors("AllowClientApp");
-
 app.UseAuthorization();
 
+app.MapControllers(); // 👈 OVO OBAVEZNO PRE fallback-a
 app.MapRazorPages();
-app.MapControllers();
-app.MapFallbackToFile("index.html");
+app.MapFallbackToFile("index.html"); // 👈 fallback NA KRAJU
+
 
 app.Run();

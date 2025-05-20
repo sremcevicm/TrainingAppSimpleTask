@@ -2,6 +2,8 @@
 using TrainingApp.Server.Interfaces;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using TrainingApp.Server.Helpers;
+using TrainingApp.Server.Services;
 
 namespace TrainingApp.Server.Controllers
 {
@@ -27,16 +29,17 @@ namespace TrainingApp.Server.Controllers
             }
         }
 
-        [HttpGet("/{code}")]
+        [HttpGet("{code}")]
         public async Task<IActionResult> GetTrainerByCode(string code)
         {
             try
             {
-                var trainer = await _service.GetTrainerByCodeAsync(code);
+                var hashedCode = SecurityHelper.HashAccessCode(code);
+                var trainer = await _service.GetTrainerByCodeAsync(hashedCode);
+
                 if (trainer == null)
-                {
                     return NotFound();
-                }
+
                 return Ok(trainer);
             }
             catch (Exception ex)
@@ -44,5 +47,23 @@ namespace TrainingApp.Server.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        [HttpPut("{id}/cancellation-notice")]
+        public async Task<IActionResult> UpdateCancellationNotice(int id, [FromBody] int hours)
+        {
+            try
+            {
+                var success = await _service.UpdateCancellationNoticeAsync(id, hours);
+                if (!success)
+                    return NotFound();
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
     }
 }
