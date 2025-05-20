@@ -8,9 +8,10 @@
 @inject NotificationService NotificationService
 @inject NavigationManager NavigationManager;
 @inject HttpClient Http;
-
+<div class="page-container">
 <h3>Unesite ovde svoje podatke</h3>
 
+<div class="form-container">
 <RadzenTemplateForm TItem="UserDetailsDTO" Data="@Model">
     <RadzenStack Gap="1rem">
 
@@ -48,4 +49,5 @@
 
     </RadzenStack>
 </RadzenTemplateForm>
-
+</div>
+</div>

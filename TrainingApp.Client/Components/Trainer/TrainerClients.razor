@@ -1,5 +1,20 @@
-﻿<h3>TrainerClients</h3>
+﻿@using TrainingApp.Shared.DTOs;
+@using Radzen
 
-@code {
+@inject DialogService DialogService
+@inject HttpClient Http
 
-}
+<RadzenDataGrid Data="@clients" TItem="UserDetailsDTO" ColumnWidth="200px" AllowPaging="true" PageSize="10">
+    <Columns>
+        <RadzenDataGridColumn TItem="UserDetailsDTO" Property="Name" Title="Ime i prezime" />
+        <RadzenDataGridColumn TItem="UserDetailsDTO" Property="Email" Title="Email" />
+        <RadzenDataGridColumn TItem="UserDetailsDTO" Property="Phone" Title="Telefon" />
+        <RadzenDataGridColumn TItem="UserDetailsDTO" Title="Akcije">
+            <Template Context="editUserData">
+                <RadzenButton Icon="edit" Size="ButtonSize.Small" Style="margin-right: 5px"
+                              Click="@(() => OpenEditDialog(editUserData))" />
+            </Template>
+        </RadzenDataGridColumn>
+
+    </Columns>
+</RadzenDataGrid>

@@ -8,5 +8,6 @@ namespace TrainingApp.Server.Interfaces
         Task<UserDetailsDTO> AddUserAsync(UserDetailsDTO user);
         Task<bool> UpdateUserAsync(UserDetailsDTO user);
         Task<List<UserDetailsDTO>> GetAllUsersAsync();
+        Task<bool> UpdateUserByEmailAsync(string email, UserDetailsDTO updatedUser);
     }
 }

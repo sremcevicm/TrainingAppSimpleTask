@@ -1,29 +1,31 @@
 ﻿using System.Net.Mail;
 using System.Net;
+using Microsoft.Extensions.Options;
 using TrainingApp.Server.Interfaces;
 
 namespace TrainingApp.Server.Services
 {
     public class EmailService : IEmailService
     {
-        private readonly IConfiguration _configuration;
+        private readonly SmtpSettings _smtpSettings;
 
-        public EmailService(IConfiguration configuration)
+        public EmailService(IOptions<SmtpSettings> smtpOptions)
         {
-            _configuration = configuration;
+            _smtpSettings = smtpOptions.Value;
         }
+
         public async Task SendNotificationAsync(string clientEmail, string trainerEmail, string message)
         {
-            var smtpClient = new SmtpClient(_configuration["Smtp:Host"])
+            using var smtpClient = new SmtpClient(_smtpSettings.Host)
             {
-                Port = int.Parse(_configuration["Smtp:Port"]),
-                Credentials = new NetworkCredential(_configuration["Smtp:Username"], _configuration["Smtp:Password"]),
+                Port = _smtpSettings.Port,
+                Credentials = new NetworkCredential(_smtpSettings.Username, _smtpSettings.Password),
                 EnableSsl = true
             };
 
             var mailMessage = new MailMessage
             {
-                From = new MailAddress(_configuration["Smtp:Sender"]),
+                From = new MailAddress(_smtpSettings.Sender),
                 Subject = "Obaveštenje o trening terminu",
                 Body = message,
                 IsBodyHtml = false

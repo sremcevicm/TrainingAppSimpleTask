@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TrainingApp.Server.Data.Contexts;
 using TrainingApp.Server.Interfaces;
+using TrainingApp.Server.Services;
 using TrainingApp.Shared.DTOs;
 
 namespace TrainingApp.Server.Controllers
@@ -45,5 +47,16 @@ namespace TrainingApp.Server.Controllers
             var addedUser = await _service.AddUserAsync(user);
             return Ok(addedUser); // Vrati novog korisnika
         }
+
+        [HttpPut("{email}")]
+        public async Task<IActionResult> UpdateUser(string email, UserDetailsDTO updatedUser)
+        {
+            var success = await _service.UpdateUserByEmailAsync(email, updatedUser);
+            if (!success)
+                return NotFound(); 
+
+            return NoContent();
+        }
+
     }
 }

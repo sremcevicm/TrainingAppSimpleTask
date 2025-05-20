@@ -29,7 +29,6 @@ public partial class Schedule
     {
         trainers = await Http.GetFromJsonAsync<List<ChooseTrainerDTO>>("api/trainer");
 
-        // Ako korisnik nije trener, možeš automatski postaviti njegovog trenera ako znaš Email
         if (UserDetails.IsTrainer && !string.IsNullOrEmpty(UserDetails.Email))
         {
             var trainer = trainers?.FirstOrDefault(t => t.Email == UserDetails.Email);
@@ -46,6 +45,7 @@ public partial class Schedule
     private async Task OnTrainerChanged(object value)
     {
         TrainerId = value as int?;
+        CancellationNoticeInHours = trainers.FirstOrDefault(t => t.Id == TrainerId)?.CancellationNoticeInHours ?? 0;
         await LoadAndFilterSessions();
     }
 
@@ -101,19 +101,30 @@ public partial class Schedule
     void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<ScheduleRequestDTO> args)
     {
         // Never call StateHasChanged in AppointmentRender - would lead to infinite loop
-
         if (args.Data.StartTime < DateTime.Now)
         {
             args.Attributes["style"] = "background: gray";
         }
+        else if(args.Data.Email == UserDetails.Email)
+        {
+            args.Attributes["style"] = "background: green";
+        }
         else
         {
-            args.Attributes["style"] = "background: blue";
+            args.Attributes["style"] = "background: darkblue";
         }
+
+
     }
 
     async Task OnAppointmentSelect(SchedulerAppointmentSelectEventArgs<ScheduleRequestDTO> args)
     {
+        if (args.Data.Email != UserDetails.Email)
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Ne mozes otkazati tudje termine");
+            return;
+        }
+
         var model = args.Data;
         model.TrainerId = TrainerId ?? 0;
 
@@ -210,6 +221,12 @@ public partial class Schedule
 
         if (draggedAppointment is not null)
         {
+            if(draggedAppointment.StartTime < DateTime.Now.AddHours(CancellationNoticeInHours))
+            {
+                NotificationService.Notify(NotificationSeverity.Warning, "Otkazni rok", $"Ne možete pomeriti termin koji je ili prosao ili ce se odrzati za manje od {CancellationNoticeInHours} sati", TimeSpan.FromSeconds(15));
+                return;
+            }
+
             DateTime newStartTime;
             if (args.SlotDate.TimeOfDay == TimeSpan.Zero)
             {
@@ -241,6 +258,14 @@ public partial class Schedule
                 NotificationService.Notify(NotificationSeverity.Error, "Greška", "Termin se poklapa sa postojećim terminom.");
                 return;
             }
+
+            // Provera da li je novi termin u okviru dozvoljenog vremena (otkazni rok)
+            if (DateTime.Now.AddHours(CancellationNoticeInHours) > newStartTime)
+            {
+                NotificationService.Notify(NotificationSeverity.Warning, "Otkazni rok", $"Ne možete pomeriti termin na vreme manje od {CancellationNoticeInHours}h od sada.");
+                return;
+            }
+
 
             draggedAppointment.StartTime = newStartTime;
 

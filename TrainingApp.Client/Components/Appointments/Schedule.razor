@@ -27,13 +27,15 @@
     else
     {
         <br />
-        <div>
+        <div class="hrs-updt">
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
             <RadzenLabel Text="Otkazni rok (sati): " Style="width: 6rem;" />
             <RadzenNumeric @bind-Value="CancellationNoticeInHours"
                             Style="width: 14rem;" />
         </RadzenStack>
-        <RadzenButton Text="Potvrdi" ButtonType="ButtonType.Button" Click="@OnHoursChange" Style="margin-top: 1rem;" />
+
+                <RadzenButton Text="Potvrdi" ButtonType="ButtonType.Button" Click="@OnHoursChange" />
+
         </div>
         <br />
     }

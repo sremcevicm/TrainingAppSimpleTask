@@ -4,12 +4,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using TrainingApp.Server.Interfaces;
 using TrainingApp.Server.Services;
+using TrainingApp.Server;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.Configure<SmtpSettings>(
+    builder.Configuration.GetSection("Smtp"));
 
 builder.Services.AddScoped<ITrainingSession, TrainingSessionService>();
 builder.Services.AddScoped<ITrainer, TrainerService>();

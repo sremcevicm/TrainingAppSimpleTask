@@ -58,7 +58,7 @@ namespace TrainingApp.Server.Services
             {
                 Name = u.Name,
                 Email = u.Email,
-                Phone = u.PhoneNumber ?? string.Empty,
+                Phone = u.PhoneNumber,
                 IsTrainer = false
             }).ToList();
         }
@@ -67,6 +67,19 @@ namespace TrainingApp.Server.Services
         public Task<bool> UpdateUserAsync(UserDetailsDTO user)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<bool> UpdateUserByEmailAsync(string email, UserDetailsDTO updatedUser)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+                return false;
+
+            user.Name = updatedUser.Name;
+            user.PhoneNumber = updatedUser.Phone;
+
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

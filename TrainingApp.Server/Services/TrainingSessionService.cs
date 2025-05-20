@@ -9,10 +9,14 @@ namespace TrainingApp.Server.Services
     public class TrainingSessionService : ITrainingSession
     {
         private readonly AppDbContext _context;
+        private readonly IEmailService _emailService;
+        private bool createNew = true;
+        private DateTime oldTime;
 
-        public TrainingSessionService(AppDbContext context)
+        public TrainingSessionService(AppDbContext context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         public Task<List<ScheduleRequestDTO>> GetAllTrainingSessionsAsync()
@@ -45,6 +49,9 @@ namespace TrainingApp.Server.Services
 
                 if (trainingSession == null)
                     throw new Exception("Training session not found");
+
+                createNew = false;
+                oldTime = trainingSession.StartTime;
             }
             else
             {
@@ -64,9 +71,7 @@ namespace TrainingApp.Server.Services
                 if (user == null)
                     throw new Exception("User not found");
 
-                trainingSession.UserId = user.UserId; // Dodeli UserId sesiji
-                user.TrainingSessions.Add(trainingSession); // Dodaj trening sesiju korisniku
-                _context.Users.Update(user);
+                
             }
             else if (!string.IsNullOrEmpty(dto.FullName) && !string.IsNullOrEmpty(dto.Email))
             {
@@ -81,36 +86,68 @@ namespace TrainingApp.Server.Services
                         TrainingSessions = new List<TrainingSession>() // Inicijalizuj listu
                     };
 
-                    trainingSession.UserId = user.UserId; // Dodeli UserId sesiji
-                    user.TrainingSessions.Add(trainingSession); // Dodaj trening sesiju korisniku
-                    _context.Users.Add(user);
-                    await _context.SaveChangesAsync(); // Sačuvaj korisnika da bi dobio ID
+                     // Sačuvaj korisnika da bi dobio ID
                 }
             }
 
+            trainingSession.UserId = user.UserId;
+            user.TrainingSessions.Add(trainingSession);
+            trainingSession.User = user; // Dodeli korisnika sesiji
+            _context.Users.Update(user);
+
             await _context.SaveChangesAsync();
 
-            return new ScheduleRequestDTO
+            var trainerEmail = await _context.Trainers
+                .Where(t => t.TrainerId == dto.TrainerId)
+                .Select(t => t.Email)
+                .FirstOrDefaultAsync();
+
+            if (createNew)
             {
-                TrainingSessionId = trainingSession.TrainingSessionId,
-                StartTime = trainingSession.StartTime,
-                DurationInMinutes = (int)(trainingSession.EndTime - trainingSession.StartTime).TotalMinutes,
-                Type = trainingSession.TrainingType,
-                TrainerId = trainingSession.TrainerId,
-                UserId = user?.UserId,
-                FullName = user?.Name,
-                Email = user?.Email
-            };
+                await _emailService.SendNotificationAsync(user.Email, trainerEmail, $"Trening {dto.Type} je zakazan za {dto.StartTime}. Klijent {dto.FullName}");
+            }
+            else
+            {
+                await _emailService.SendNotificationAsync(user.Email, trainerEmail, $"Trening {dto.Type} je pomeren sa {oldTime} na {dto.StartTime}. Klijent {dto.FullName}");
+
+            }
+
+            return new ScheduleRequestDTO
+                {
+                    TrainingSessionId = trainingSession.TrainingSessionId,
+                    StartTime = trainingSession.StartTime,
+                    DurationInMinutes = (int)(trainingSession.EndTime - trainingSession.StartTime).TotalMinutes,
+                    Type = trainingSession.TrainingType,
+                    TrainerId = trainingSession.TrainerId,
+                    UserId = user?.UserId,
+                    FullName = user?.Name,
+                    Email = user?.Email
+                };
         }
 
         public async Task DeleteTrainingSessionAsync(int id)
         {
             var session = await _context.TrainingSessions.FindAsync(id);
-            if (session == null)
+            if (session is null)
                 throw new Exception("Training session not found.");
 
+            var user = await _context.Users
+                .Include(u => u.TrainingSessions)
+                .FirstOrDefaultAsync(u => u.UserId == session.UserId);
+
+            if(user is null)
+                throw new Exception("User not found.");
+
             _context.TrainingSessions.Remove(session);
+            user.TrainingSessions.Remove(session);
             await _context.SaveChangesAsync();
+
+            var trainerEmail = await _context.Trainers
+                .Where(t => t.TrainerId == session.TrainerId)
+                .Select(t => t.Email)
+                .FirstOrDefaultAsync();
+
+            await _emailService.SendNotificationAsync(user.Email, trainerEmail, $"Trening {session.TrainingType} u {session.StartTime} je otkazan.");
         }
 
 

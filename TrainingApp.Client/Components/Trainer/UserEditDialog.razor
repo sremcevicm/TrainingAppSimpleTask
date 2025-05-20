@@ -1,0 +1,32 @@
+﻿@inject HttpClient Http
+@inject DialogService DialogService
+@inject NotificationService NotificationService
+@using TrainingApp.Shared.DTOs
+
+<RadzenTemplateForm TItem="UserDetailsDTO" Data="@Model">
+    <RadzenStack Gap="1rem">
+
+        <!-- Full Name -->
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Ime i prezime" Style="width: 6rem;" />
+            <RadzenTextBox @bind-Value="Model.Name" Name="FullName" Style="width: 14rem;" />
+        </RadzenStack>
+
+        <!-- Phone Number -->
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Broj telefona" Style="width: 6rem;" />
+            <RadzenTextBox @bind-Value="Model.Phone" Name="PhoneNumber" Style="width: 14rem;" />
+        </RadzenStack> 
+
+        <!--Email-->
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+            <RadzenLabel Text="Email adresa" Style="width: 6rem;" />
+            <RadzenTextBox @bind-Value="Model.Email" Name="Email" Style="width: 14rem;" Disabled=@true />
+        </RadzenStack>
+
+        <RadzenButton Text="Sačuvaj" ButtonType=ButtonType.Button Click="@OnSubmit" Style="width: 14rem;" />
+        
+
+
+    </RadzenStack>
+</RadzenTemplateForm>
